@@ -1,0 +1,18 @@
+{{ define "home" }}
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<title>Hermes - Home</title>
+	</head>
+	<body>
+		{{ template "header" }}
+
+		<h1>Home</h1>
+		{{ range $element := .numbers }}
+			<p>{{ $element }}</p>
+		{{ end }}
+		
+		{{ template "footer" }}
+	</body>
+</html>
+{{ end }}
