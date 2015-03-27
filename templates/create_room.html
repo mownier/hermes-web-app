@@ -9,6 +9,11 @@
 
 		<h1>Create Room</h1>
 
+		<form method="POST" action="/room/create/process">
+			Room Name: <input type="text" name="room_name"/> <br>
+			<input type="submit" value="Go"/>
+		</form>
+
 		{{ template "footer" }}
 	</body>
 </html>
