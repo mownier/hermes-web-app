@@ -9,6 +9,10 @@
 
 		<h1>Rooms</h1>
 
+		{{ range $room := .rooms }}
+			<p> {{ index $room "name" }} </p>
+		{{ end }}
+
 		{{ template "footer" }}
 	</body>
 </html>
