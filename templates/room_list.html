@@ -1,5 +1,5 @@
 {{ define "room_list" }}
-<!DOCTYPE HTML>
+<!DOCTYPE html>
 <html>
 	<head>
 		<title>Hermes - Rooms</title>
@@ -9,9 +9,11 @@
 
 		<h1>Rooms</h1>
 
-		{{ range $room := .rooms }}
-			<p> {{ index $room "name" }} </p>
+		<ol> 
+		{{ range $index, $room := .rooms }}
+			<li><a href="/room/conversation?id={{ $room.Id }}"> {{ $room.Name }} </a></li>
 		{{ end }}
+		</ol>
 
 		{{ template "footer" }}
 	</body>
