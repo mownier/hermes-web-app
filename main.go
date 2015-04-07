@@ -1,54 +1,37 @@
 package main
 
 import (
-	"bytes"
 	"net/http"
 	"html/template"
-	"database/sql"
-	_ "github.com/go-sql-driver/mysql"
+	"./model"
+	"./utils"
 )
 
 var dbInfo = "root:@/hermes"
 
-var roomCreateUrl = "/room/create"
-var roomListUrl = "/room"
+var homeUrl string = "/"
+
+var roomCreateUrl string = "/room/create"
+var roomListUrl string = "/room"
+var roomConversationUrl string = "/room/conversation"
 
 func main() {
-	http.HandleFunc("/", HomeHandler)
+	http.HandleFunc(homeUrl, HomeHandler)
+
 	http.HandleFunc(roomCreateUrl, RoomCreateHandler)
 	http.HandleFunc(roomListUrl, RoomListHandler)
+	http.HandleFunc(roomConversationUrl, RoomConversationHandler)
+
+	// Mandatory root-based resources
+    serveSingle("/scripts/jquery-1.11.2.min.js", "./scripts/jquery-1.11.2.min.js")
 
 	http.ListenAndServe(":4321", nil)
 }
 
-func appendString(b ...string) string {
-	var buffer bytes.Buffer
-	for i := 0; i < len(b); i++ {
-		var s string = b[i]
-		buffer.WriteString(s)
-	}
-	return buffer.String()
-}
-
-func convertToArray(rows *sql.Rows) []interface{} {
-	var result []interface{} = make([]interface{}, 0)
-	var id int
-	var name string
-	for rows.Next() {
-		err := rows.Scan(&id, &name)
-		if err != nil {
-			panic(err)
-		}
-
-		var row map[string]interface{} = map[string]interface{}{
-			"id": id,
-			"name": name,
-		}
-		
-		result = append(result, row)
-		
-	}
-	return result
+func serveSingle(pattern string, filename string) {
+    http.HandleFunc(pattern, func(w http.ResponseWriter, r *http.Request) {
+        http.ServeFile(w, r, filename)
+    })
 }
 
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
@@ -64,31 +47,40 @@ func RoomCreateHandler(w http.ResponseWriter, r *http.Request) {
 		t.ExecuteTemplate(w, "create_room", nil)
 	} else if r.Method == "POST" {
 		var roomName string = r.FormValue("room_name")
-		
-		db, _ := sql.Open("mysql", dbInfo)
-		_, err := db.Exec("INSERT INTO rooms (name) VALUES (?)", roomName)
-		if err == nil {
-			println(appendString("created room: '", roomName, "'"))
+		room := new(model.Room)
+		room.Name = roomName
+		hasError := room.Insert()
+		if hasError == false {
+			println(utils.AppendString("created room: '", room.Name, "'"))
 		}
-		defer db.Close()
-
 		http.Redirect(w, r, roomListUrl, http.StatusMovedPermanently)
 	}
 }
 
 func RoomListHandler(w http.ResponseWriter, r *http.Request) {
-	var t = template.Must(template.New("RoomList").ParseFiles("templates/room_list.html", "templates/header.html", "templates/footer.html"))
-	
-	// TODO: Get list of rooms from the database
-	db, _ := sql.Open("mysql", dbInfo)
-	rows, _ := db.Query("SELECT * FROM rooms")
-	defer rows.Close()
-	defer db.Close()
-
-	var rooms = convertToArray(rows)
-	var data = map[string]interface{}{
-		"rooms": rooms,
+	funcMap := template.FuncMap {
+		"add": func(a, b int) int {
+				return a + b
+			},
 	}
+	var t = template.Must(template.New("RoomList").Funcs(funcMap).ParseFiles("templates/room_list.html", "templates/header.html", "templates/footer.html"))
+	
+	var data = map[string]interface{}{
+		"rooms": model.GetAllRooms(),
+	}
+
 	t.ExecuteTemplate(w, "room_list", data)
 }
 
+func RoomConversationHandler(w http.ResponseWriter, r *http.Request) {
+	var roomId string = r.URL.Query().Get("id")
+	var t = template.Must(template.New("RoomDetail").ParseFiles("templates/room_detail.html", "templates/header.html", "templates/footer.html"))
+	var room *model.Room = model.GetRoomById(roomId)
+	var data map[string]string = nil
+	if room != nil {
+		data = map[string]string {
+			"room_name": room.Name,
+		}
+	}
+	t.ExecuteTemplate(w, "room_detail", data)
+}
