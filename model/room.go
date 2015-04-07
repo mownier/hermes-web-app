@@ -66,6 +66,21 @@ func GetAllRooms() []*Room {
 	return toArray(rows)
 }
 
+func GetRoomById(id string) *Room {
+	db, _ := sql.Open("mysql", dbInfo)
+	rows, err := db.Query("SELECT * FROM rooms WHERE id=?", id)
+	if err != nil {
+		// TODO : handle errors
+		fmt.Print("error: ")
+		fmt.Println(err)
+
+		return nil
+	} else {
+		rooms := toArray(rows)
+		return rooms[0]
+	}
+}
+
 func toArray(rows *sql.Rows) []*Room {
 	var data []*Room = make([]*Room, 0)
 	for rows.Next() {
