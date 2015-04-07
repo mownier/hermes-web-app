@@ -1,0 +1,33 @@
+{{ define "room_detail" }}
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Room - {{ .room_name }}</title>
+	</head>
+	<body>
+		{{ template "header" }}
+
+		<h1>Room - {{ .room_name }}</h1>
+		<input type="text" name="message" />
+		<input type="button" value="Send" onclick="send()" />
+
+		<div name="messages">
+		</div>
+
+		{{ template "footer" }}
+
+		<script>
+			$(document).keypress(function(e) {
+			    if(e.which == 13) {
+			        send()
+			    }
+			});
+			function send() {
+				message = $('[name="message"]').val()
+				$('[name="messages"]').append("<p>" + message + "</p>")
+				$('[name="message"]').val("")
+			}
+		</script>
+	</body>
+</html>
+{{ end }}
