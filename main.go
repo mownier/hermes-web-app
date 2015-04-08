@@ -5,6 +5,8 @@ import (
 	"html/template"
 	"./model"
 	"./utils"
+	"strconv"
+	"fmt"
 )
 
 var dbInfo = "root:@/hermes"
@@ -14,6 +16,7 @@ var homeUrl string = "/"
 var roomCreateUrl string = "/room/create"
 var roomListUrl string = "/room"
 var roomConversationUrl string = "/room/conversation"
+var messageSendUrl string = "/room/conversation/send"
 
 func main() {
 	http.HandleFunc(homeUrl, HomeHandler)
@@ -21,6 +24,7 @@ func main() {
 	http.HandleFunc(roomCreateUrl, RoomCreateHandler)
 	http.HandleFunc(roomListUrl, RoomListHandler)
 	http.HandleFunc(roomConversationUrl, RoomConversationHandler)
+	http.HandleFunc(messageSendUrl, MessageSendHandler)
 
 	// Mandatory root-based resources
     serveSingle("/scripts/jquery-1.11.2.min.js", "./scripts/jquery-1.11.2.min.js")
@@ -75,12 +79,25 @@ func RoomListHandler(w http.ResponseWriter, r *http.Request) {
 func RoomConversationHandler(w http.ResponseWriter, r *http.Request) {
 	var roomId string = r.URL.Query().Get("id")
 	var t = template.Must(template.New("RoomDetail").ParseFiles("templates/room_detail.html", "templates/header.html", "templates/footer.html"))
+	// TODO: Take note 2 db connections happening here
 	var room *model.Room = model.GetRoomById(roomId)
-	var data map[string]string = nil
-	if room != nil {
-		data = map[string]string {
-			"room_name": room.Name,
-		}
+	var conv []*model.Conversation = model.GetConversation(roomId)
+	fmt.Println(conv)
+	t.ExecuteTemplate(w, "room_detail", map[string]interface{}{
+			"room": room,
+			"conversation": conv,
+		})
+}
+
+func MessageSendHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "POST" {
+		var msg string = r.FormValue("content")
+		roomId, _ := strconv.Atoi(r.FormValue("room_id"))
+		userId, _ := strconv.Atoi(r.FormValue("user_id"))
+		var message *model.Message = new(model.Message)
+		message.Content = msg
+		message.RoomId = roomId
+		message.UserId = userId
+		message.Insert()
 	}
-	t.ExecuteTemplate(w, "room_detail", data)
 }
