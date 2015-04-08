@@ -16,54 +16,62 @@ type Room struct {
 }
 
 func (r *Room) Insert() bool {
-	var hasError bool
+	var valid bool
 	db, _ := sql.Open("mysql", dbInfo)
 	date := time.Now()
 	_, err := db.Exec("INSERT INTO rooms (name, date_created, date_modified) VALUES (?, ?, ?)", r.Name, date, date)
-	if err == nil {
-		hasError = false
+	if err != nil {
+		// TODO : handle errors
+		fmt.Print("error: ")
+		fmt.Println(err)
+		valid = false
 	} else {
-		hasError = true
+		valid = true
 	}
 	defer db.Close()
-	return hasError
+	return valid
 }
 
 func (r *Room) Update() bool {
-	var hasError bool
+	var valid bool
 	db, _ := sql.Open("mysql", dbInfo)
 	date := time.Now()
 	_, err := db.Exec("UPDATE rooms SET name=?, date_modified=? WHERE id=?", r.Name, date, r.Id)
-	if err == nil {
-		hasError = false
+	if err != nil {
+		// TODO : handle errors
+		fmt.Print("error: ")
+		fmt.Println(err)
+		valid = false
 	} else {
-		hasError = true
+		valid = true
 	}
 	defer db.Close()
-	return hasError
+	return valid
 }
 
 func (r *Room) Delete() bool {
-	var hasError bool
+	var valid bool
 	db, _ := sql.Open("mysql", dbInfo)
 	date := time.Now()
 	_, err := db.Exec("UPDATE rooms SET deleted=?, date_modified=? WHERE id=?", 1, date, r.Id)
 	if err != nil {
-		hasError = true
 		// TODO : handle errors
 		fmt.Print("error: ")
 		fmt.Println(err)
+		valid = false
 	} else {
-		hasError = false
+		valid = true
 	}
 	defer db.Close()
-	return hasError
+	return valid
 }
 
 func GetAllRooms() []*Room {
 	db, _ := sql.Open("mysql", dbInfo)
 	rows, _ := db.Query("SELECT * FROM rooms WHERE deleted=?", 0)
-	return toArray(rows)
+	var rooms []*Room = toRoomArray(rows)
+	defer db.Close()
+	return rooms
 }
 
 func GetRoomById(id string) *Room {
@@ -76,12 +84,12 @@ func GetRoomById(id string) *Room {
 
 		return nil
 	} else {
-		rooms := toArray(rows)
+		rooms := toRoomArray(rows)
 		return rooms[0]
 	}
 }
 
-func toArray(rows *sql.Rows) []*Room {
+func toRoomArray(rows *sql.Rows) []*Room {
 	var data []*Room = make([]*Room, 0)
 	for rows.Next() {
 		var room *Room = new(Room)
