@@ -2,16 +2,23 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<title>Room - {{ .room_name }}</title>
+		<title>Room - {{ .room.Name }}</title>
 	</head>
 	<body>
 		{{ template "header" }}
 
-		<h1>Room - {{ .room_name }}</h1>
-		<input type="text" name="message" />
+		<h1>Room - {{ .room.Name }}</h1>
+		<input type="text" name="content" />
 		<input type="button" value="Send" onclick="send()" />
 
 		<div name="messages">
+			{{ range $conv := .conversation }}
+				<p>
+					<strong>@{{ $conv.User.Username }}</strong>:
+					{{ $conv.Message.Content }}
+
+				</p>
+			{{ end }}
 		</div>
 
 		{{ template "footer" }}
@@ -23,9 +30,17 @@
 			    }
 			});
 			function send() {
-				message = $('[name="message"]').val()
-				$('[name="messages"]').append("<p>" + message + "</p>")
-				$('[name="message"]').val("")
+				msg = $('[name="content"]').val()
+				$('[name="content"]').val("")
+				rid = {{ .room.Id }}
+				// TODO: Get user id
+				uid = 1
+
+				$.post("/room/conversation/send", 
+						{ content: msg, room_id: rid, user_id: uid }, 
+						function(data) {
+							$('[name="messages"]').append("<p>" + msg + "</p>")
+						})
 			}
 		</script>
 	</body>
