@@ -1,0 +1,29 @@
+{{ define "sign_in" }}
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Hermes - Sign In</title>
+	</head>
+	<body>
+		{{ template "header" }}
+
+		<h1>Sign In</h1>
+
+		Username: <input type="text" id="uname" /> <br>
+		Password: <input type="password" id="pword" /> <br>
+		<input type="button" value="GO" onclick="signIn()" />
+
+		{{ template "footer" }}
+	
+		<script>
+			var uname = $("#uname").val();
+			var pword = $("#pword").val();
+			function signIn() {
+				$.post("/user/signin", { uname: uname, pword: pword }, function(data) {
+
+				});
+			}
+		</script>
+	</body>
+</html>
+{{ end }}
