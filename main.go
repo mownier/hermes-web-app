@@ -6,7 +6,7 @@ import (
 	"./model"
 	"./utils"
 	"strconv"
-	"fmt"
+	// "fmt"
 )
 
 var dbInfo = "root:@/hermes"
@@ -17,6 +17,8 @@ var roomCreateUrl string = "/room/create"
 var roomListUrl string = "/room"
 var roomConversationUrl string = "/room/conversation"
 var messageSendUrl string = "/room/conversation/send"
+var signUpUrl string = "/user/signup"
+var signInUrl string = "/user/signin"
 
 func main() {
 	http.HandleFunc(homeUrl, HomeHandler)
@@ -25,6 +27,8 @@ func main() {
 	http.HandleFunc(roomListUrl, RoomListHandler)
 	http.HandleFunc(roomConversationUrl, RoomConversationHandler)
 	http.HandleFunc(messageSendUrl, MessageSendHandler)
+	http.HandleFunc(signUpUrl, SignUpHandler)
+	http.HandleFunc(signInUrl, SignInHandler)
 
 	// Mandatory root-based resources
     serveSingle("/scripts/jquery-1.11.2.min.js", "./scripts/jquery-1.11.2.min.js")
@@ -82,7 +86,6 @@ func RoomConversationHandler(w http.ResponseWriter, r *http.Request) {
 	// TODO: Take note 2 db connections happening here
 	var room *model.Room = model.GetRoomById(roomId)
 	var conv []*model.Conversation = model.GetConversation(roomId)
-	fmt.Println(conv)
 	t.ExecuteTemplate(w, "room_detail", map[string]interface{}{
 			"room": room,
 			"conversation": conv,
@@ -99,5 +102,23 @@ func MessageSendHandler(w http.ResponseWriter, r *http.Request) {
 		message.RoomId = roomId
 		message.UserId = userId
 		message.Insert()
+	}
+}
+
+func SignUpHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "GET" {
+		var t = template.Must(template.New("SignUp").ParseFiles("templates/sign_up.html", "templates/header.html", "templates/footer.html"))
+		t.ExecuteTemplate(w, "sign_up", nil)
+	} else {
+
+	}
+}
+
+func SignInHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "GET" {
+		var t = template.Must(template.New("SignIn").ParseFiles("templates/sign_in.html", "templates/header.html", "templates/footer.html"))
+		t.ExecuteTemplate(w, "sign_in", nil)
+	} else {
+
 	}
 }
