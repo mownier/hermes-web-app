@@ -1,0 +1,44 @@
+{{ define "sign_up" }}
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Hermes - Sign Up</title>
+	</head>
+	<body>
+		{{ template "header" }}
+
+		<h1>Sign Up</h1>
+
+		First Name: <input type="text" id="fname" /> <br>
+		Last Name: <input type="text" id="lname" /> <br>
+		Username: <input type="text" id="uname" /> <br>
+		Password: <input type="Password" id="pword" /> <br>
+		Email: <input type="text" id="email" /> <br>
+		<input type="button" value="GO" onclick="signUp()" />
+
+		{{ template "footer" }}
+
+		<script>
+			function signUp() {
+				var fname = $("#fname").val();
+				var lname = $("#lname").val();
+				var uname = $("#uname").val();
+				var pword = $("#pword").val();
+				var email = $("#email").val();
+
+				$.post("/user/signup", 
+					{ fname: fname, lname: lname, uname: uname, pword: pword, email: email }, 
+					function(data) {
+						var response = JSON.parse(data);
+						if ("message" in response) {
+							var msg = response.message;
+							if (msg == "Success") {
+								sessionStorage.setItem("uname", uname);
+							}
+						}
+				});
+			}
+		</script>
+	</body>
+</html>
+{{ end }}
