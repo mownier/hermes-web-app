@@ -6,7 +6,7 @@ import (
 	"./model"
 	"./utils"
 	"strconv"
-	// "fmt"
+	"fmt"
 )
 
 var dbInfo = "root:@/hermes"
@@ -19,6 +19,7 @@ var roomConversationUrl string = "/room/conversation"
 var messageSendUrl string = "/room/conversation/send"
 var signUpUrl string = "/user/signup"
 var signInUrl string = "/user/signin"
+var signOurUrl string = "/user/signout"
 
 func main() {
 	http.HandleFunc(homeUrl, HomeHandler)
@@ -29,6 +30,7 @@ func main() {
 	http.HandleFunc(messageSendUrl, MessageSendHandler)
 	http.HandleFunc(signUpUrl, SignUpHandler)
 	http.HandleFunc(signInUrl, SignInHandler)
+	http.HandleFunc(signOurUrl, SignOutHandler)
 
 	// Mandatory root-based resources
     serveSingle("/scripts/jquery-1.11.2.min.js", "./scripts/jquery-1.11.2.min.js")
@@ -109,8 +111,26 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		var t = template.Must(template.New("SignUp").ParseFiles("templates/sign_up.html", "templates/header.html", "templates/footer.html"))
 		t.ExecuteTemplate(w, "sign_up", nil)
-	} else {
+	} else if r.Method == "POST" {
+		var fname = r.FormValue("fname")
+		var lname = r.FormValue("lname")
+		var uname = r.FormValue("uname")
+		var pword = r.FormValue("pword")
+		var email = r.FormValue("email")
 
+		var user *model.User = new(model.User)
+		user.FirstName = fname
+		user.LastName = lname
+		user.Username = uname
+		user.Password = pword
+		user.Email = email
+		if user.Insert() {
+			fmt.Println("@" + uname + ": signed up")
+			var response = `{"message": "Success"}`
+			// Setting the response as json format
+			w.Header().Set("Content-Type", "application/json")
+			w.Write([]byte(response))
+		}
 	}
 }
 
@@ -118,7 +138,34 @@ func SignInHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		var t = template.Must(template.New("SignIn").ParseFiles("templates/sign_in.html", "templates/header.html", "templates/footer.html"))
 		t.ExecuteTemplate(w, "sign_in", nil)
-	} else {
+	} else if r.Method == "POST" {
+		var uname = r.FormValue("uname")
+		var pword = r.FormValue("pword")
 
+		var user *model.User = new(model.User)
+		user.Username = uname
+		user.Password = pword
+
+		var response []byte
+		if user.Authenticate() {
+			fmt.Println("@" + uname + ": signed in")
+			response = []byte(`{"message": "Success"}`)
+		} else {
+			response = []byte(`{"message": "Mismatach username and password"}`)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(response))
 	}
 }
+
+func SignOutHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "POST" {
+		var uname = r.FormValue("uname")
+		fmt.Println("@" + uname + ": signed out")
+
+		var response []byte = []byte(`{"message": "Success"}`)
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(response)
+	}
+}
+
