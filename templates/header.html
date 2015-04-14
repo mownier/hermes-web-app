@@ -1,12 +1,45 @@
 {{ define "header" }}
 	<script type="application/javascript" src="/scripts/jquery-1.11.2.min.js"></script>
+	<script>
+		$(document).ready(function() {
+			var uname = sessionStorage.getItem("uname");
+			if (uname == null || uname == "") {
+				$("#header_sign_up").show();
+				$("#header_sign_in").show();
+
+				$("#header_rooms").hide();
+				$("#header_create_room").hide();
+				$("#header_sign_out").hide();
+			} else {
+				$("#header_rooms").show();
+				$("#header_create_room").show();
+				$("#header_sign_out").show();
+
+				$("#header_sign_in").hide();
+				$("#header_sign_up").hide();
+			}
+
+			$("#header_sign_out a").click(function() {
+				var uname = sessionStorage.getItem("uname")
+				$.post("/user/signout", 
+					{ uname: uname }, 
+					function(data) {
+						if (data.message == "Success") {
+							sessionStorage.removeItem("uname")
+							window.location = "/"
+						}
+				})
+			});
+		});
+	</script>
 	<header>
 		<ul>
 			<li><a href="/">Home</a></li>
-			<li><a href="/room">Rooms</a></li>
-			<li><a href="/room/create">Create Room</a></li>
-			<li><a href="/user/signup">Sign Up</a></li>
-			<li><a href="/user/signin">Sign in</a></li>
+			<li id="header_rooms"><a href="/room">Rooms</a></li>
+			<li id="header_create_room"><a href="/room/create">Create Room</a></li>
+			<li id="header_sign_up"><a href="/user/signup">Sign Up</a></li>
+			<li id="header_sign_in"><a href="/user/signin">Sign in</a></li>
+			<li id="header_sign_out"><a href="#">Sign out</a></li>
 		</ul>
 	</header>
 {{ end }}
