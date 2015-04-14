@@ -13,14 +13,21 @@
 		Password: <input type="password" id="pword" /> <br>
 		<input type="button" value="GO" onclick="signIn()" />
 
+		<strong><p id="result"></p></strong>
 		{{ template "footer" }}
 	
 		<script>
-			var uname = $("#uname").val();
-			var pword = $("#pword").val();
 			function signIn() {
-				$.post("/user/signin", { uname: uname, pword: pword }, function(data) {
-
+				var uname = $("#uname").val();
+				var pword = $("#pword").val();
+				$.post("/user/signin", 
+					{ uname: uname, pword: pword }, 
+					function(data) {
+						alert(data.message);
+						if (data.message == "Success") {
+							sessionStorage.setItem("uname", uname);
+							window.location = "/";
+						}
 				});
 			}
 		</script>
