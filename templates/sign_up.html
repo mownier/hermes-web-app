@@ -29,11 +29,12 @@
 				$.post("/user/signup", 
 					{ fname: fname, lname: lname, uname: uname, pword: pword, email: email }, 
 					function(data) {
-						var response = JSON.parse(data);
+						var response = data;
 						if ("message" in response) {
 							var msg = response.message;
 							if (msg == "Success") {
 								sessionStorage.setItem("uname", uname);
+								window.location = "/"
 							}
 						}
 				});
